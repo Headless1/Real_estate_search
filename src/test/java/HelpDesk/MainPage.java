@@ -1,32 +1,65 @@
 package HelpDesk;
 
-import core.BasePage;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
-import org.openqa.selenium.support.PageFactory;
+import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.SelenideElement;
+import io.cucumber.java.en.And;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import org.junit.Assert;
+import org.openqa.selenium.Keys;
 
-public class MainPage extends BasePage {
-    @FindBy(xpath = "//input[@placeholder='Введіть місто']")
-    private WebElement inputCity;
 
-    @FindBy(xpath = "//div[@title='Вінниця, Вінницька область']")
-    private WebElement pickCity;
+import static com.codeborne.selenide.Selenide.$x;
 
-    @FindBy(xpath = "//button[@class='button-border bold-500 small size18']")
-    private WebElement pickList;
+public class MainPage{
 
-    @FindBy(xpath = "//a[@class='flex f-space f-center button-search']")
-    private WebElement pickFind;
+    private final SelenideElement inputCity = $x("//input[@placeholder='Введіть місто']");
 
-    public MainPage() {
-        driver.get("https://dom.ria.com/uk/");
-        PageFactory.initElements(driver, this);
+    private final SelenideElement pickCity = $x("//div[@title='Вінниця, Вінницька область']");
+
+    private final SelenideElement pickFind = $x("//a[@class='flex f-space f-center button-search']");
+
+    private final SelenideElement price = $x("//*[@id='mainAdditionalParams_0']//*[@class='item-pseudoselect form-selected small']");
+
+    private final SelenideElement inputPrice = $x("//input[@id='234_from']");
+
+    private final SelenideElement switch_button = $x("//button[@class='button-border bold-500 small'][not(contains(@class, 'noClickEvent'))]");
+
+    private final SelenideElement card = $x("//div[@class='search-result-list f100']//h3[contains(@class, 'tit')]");
+
+    private final SelenideElement priceOfhoue = $x("//b[@class='size30']");
+
+    private String getresult(){
+        return priceOfhoue.getText().replaceAll("[^0-9]", "");
     }
-
+    @Given("We open the site {string}")
+    public void OpenMainPage(String url){
+        Selenide.open(url);
+    }
+    @When("Enter filters")
     public void searching(){
         inputCity.click();
         pickCity.click();
-        pickList.click();
         pickFind.click();
     }
+    @And("Enter the price")
+    public void priceSearching(){
+        price.click();
+        String myPrice = "100000";
+        inputPrice.sendKeys(myPrice, Keys.ENTER);
+    }
+    @And("We open the real estate page")
+    public void openCard(){
+        switch_button.click();
+        card.click();
+    }
+    @Then("The real estate price is greater than or equal to {int}")
+    public void getpriceOfhoue(int minValue){
+        String result = getresult();
+        int resultNumber = Integer.parseInt(result);
+        Assert.assertTrue("Current result" + resultNumber, resultNumber >= minValue);
+    }
+
+
 }
